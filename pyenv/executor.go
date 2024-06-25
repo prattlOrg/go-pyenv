@@ -60,17 +60,17 @@ func (env *PyEnv) ExecutePython(arg string) (string, error) {
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	if err := cmd.Start(); err != nil {
-		log.Printf("Error: %s\n", stderr.String())
+		log.Printf("Error with command start: %s\n", stderr.String())
 		e := fmt.Errorf(stderr.String())
 		return "", e
 	}
 	if err := cmd.Wait(); err != nil {
-		log.Printf("Error: %s\n", stderr.String())
+		log.Printf("Error with command wait: %s\n", stderr.String())
 		e := fmt.Errorf(stderr.String())
 		return "", e
 	}
-	e := fmt.Errorf(stderr.String())
-	log.Printf("Error: %s\n", stderr.String())
+	// e := fmt.Errorf(stderr.String())
+	// log.Printf("Error: %s\n", stderr.String())
 	output := out.String()
-	return output, e
+	return output, nil
 }
