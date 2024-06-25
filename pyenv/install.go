@@ -13,13 +13,14 @@ import (
 	"github.com/klauspost/compress/zstd"
 )
 
-const DIST_DIR = "./dist/"
+const DIST_DIR = "dist/"
 
-func MacInstall() {
-	os.Mkdir(DIST_DIR, os.ModePerm)
+func (env *PyEnv) MacInstall() {
+	targetDir := env.ParentPath + DIST_DIR
+	os.Mkdir(targetDir, os.ModePerm)
 
 	version := "cpython-3.12.3+20240415-aarch64-apple-darwin-pgo+lto-full.tar.zst"
-	downloadPath := DIST_DIR + version
+	downloadPath := targetDir + version
 	downloadUrl := fmt.Sprintf("https://github.com/indygreg/python-build-standalone/releases/download/20240415/%s", version)
 
 	r, err := http.Get(downloadUrl)
@@ -44,7 +45,7 @@ func MacInstall() {
 
 	if _, err := os.Stat(downloadPath); err == nil {
 
-		extractPath := DIST_DIR + "python-mac.extracted"
+		extractPath := targetDir + "python-mac.extracted"
 		err := os.RemoveAll(extractPath)
 		if err != nil {
 			log.Panic(err)
