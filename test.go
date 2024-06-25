@@ -1,17 +1,16 @@
-package main
+package test
 
 import (
 	"fmt"
-	"io/fs"
+	"testing"
 
 	"github.com/voidKandy/go-pyenv/pyenv"
 )
 
-func main() {
-	if !fs.ValidPath("dist") {
+func TestIntegration(t *testing.T) {
+	if !pyenv.DistExists() {
 		pyenv.MacInstall()
 	}
-
 	program := `
 		print('hello')
 		print('world')
