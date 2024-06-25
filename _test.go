@@ -18,3 +18,7 @@ func TestIntegration(t *testing.T) {
 	out, e := pyenv.Execute(program)
 	fmt.Printf("%s : %v", out, *e)
 }
+
+func TestDependencies(t *testing.T) {
+	pyenv.AddDependencies("requirements.txt")
+}

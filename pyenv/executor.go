@@ -12,29 +12,34 @@ func DistExists() bool {
 	return fs.ValidPath("dist")
 }
 
-func AddDependencies(requirementsPath string) (string, *error) {
+func AddDependencies(requirementsPath string) (string, error) {
 	deps, err := os.ReadFile(requirementsPath)
-
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-
-	cmd := exec.Command("./dist/python-mac.extracted/python/install/bin/pip", "install")
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	if err := cmd.Start(); err != nil {
-		e := fmt.Errorf(stderr.String())
-		return "", &e
+	if err != nil {
+		return "", err
 	}
-	if err := cmd.Wait(); err != nil {
-		e := fmt.Errorf(stderr.String())
-		return "", &e
-	}
-	e := fmt.Errorf(stderr.String())
-	output := out.String()
-	return output, &e
+
+	fmt.Println(string(deps))
+
+	// var out bytes.Buffer
+	// var stderr bytes.Buffer
+	// cmd := exec.Command("./dist/python-mac.extracted/python/install/bin/pip", "install", )
+	// cmd.Stdout = &out
+	// cmd.Stderr = &stderr
+	// if err := cmd.Start(); err != nil {
+	// 	e := fmt.Errorf(stderr.String())
+	// 	return "", &e
+	// }
+	// if err := cmd.Wait(); err != nil {
+	// 	e := fmt.Errorf(stderr.String())
+	// 	return "", &e
+	// }
+	// e := fmt.Errorf(stderr.String())
+	// output := out.String()
+	// return output, &e
+	return "", nil
 }
 
-func Execute(arg string) (string, *error) {
+func Execute(arg string) (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd := exec.Command("./dist/python-mac.extracted/python/install/bin/python", "-c", arg)
@@ -43,13 +48,13 @@ func Execute(arg string) (string, *error) {
 	cmd.Stderr = &stderr
 	if err := cmd.Start(); err != nil {
 		e := fmt.Errorf(stderr.String())
-		return "", &e
+		return "", e
 	}
 	if err := cmd.Wait(); err != nil {
 		e := fmt.Errorf(stderr.String())
-		return "", &e
+		return "", e
 	}
 	e := fmt.Errorf(stderr.String())
 	output := out.String()
-	return output, &e
+	return output, e
 }
