@@ -1,7 +1,20 @@
 package main
 
-import "prattl-mac-python-install/pyenv"
+import (
+	"fmt"
+	"io/fs"
+	"prattl-mac-python-install/pyenv"
+)
 
 func main() {
-	pyenv.MacInstall()
+	if !fs.ValidPath("dist") {
+		pyenv.MacInstall()
+	}
+
+	program := `
+		print('hello')
+		print('world')
+	`
+	out, e := pyenv.Execute(program)
+	fmt.Printf("%s : %v", out, *e)
 }

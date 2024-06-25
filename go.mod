@@ -1,4 +1,4 @@
-module prattl-mac-python-install
+module github.com/voidKandy/go-pyenv
 
 go 1.21.3
 
