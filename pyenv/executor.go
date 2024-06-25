@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 )
@@ -59,35 +60,17 @@ func (env *PyEnv) ExecutePython(arg string) (string, error) {
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	if err := cmd.Start(); err != nil {
+		log.Printf("Error: %s\n", stderr.String())
 		e := fmt.Errorf(stderr.String())
 		return "", e
 	}
 	if err := cmd.Wait(); err != nil {
+		log.Printf("Error: %s\n", stderr.String())
 		e := fmt.Errorf(stderr.String())
 		return "", e
 	}
 	e := fmt.Errorf(stderr.String())
-	output := out.String()
-	return output, e
-}
-
-func (env *PyEnv) executePip(args []string) (string, error) {
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd := exec.Command(env.ParentPath+"dist/python-mac.extracted/python/install/bin/pip",
-		args...)
-
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	if err := cmd.Start(); err != nil {
-		e := fmt.Errorf(stderr.String())
-		return "", e
-	}
-	if err := cmd.Wait(); err != nil {
-		e := fmt.Errorf(stderr.String())
-		return "", e
-	}
-	e := fmt.Errorf(stderr.String())
+	log.Printf("Error: %s\n", stderr.String())
 	output := out.String()
 	return output, e
 }

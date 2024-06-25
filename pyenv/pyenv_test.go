@@ -1,16 +1,11 @@
 package pyenv
 
 import (
+	"bytes"
 	"fmt"
-	// "os/exec"
+	"os/exec"
 	"testing"
 )
-
-func testEnv() PyEnv {
-	return PyEnv{
-		ParentPath: "../",
-	}
-}
 
 func TestIntegration(t *testing.T) {
 	env := testEnv()
@@ -28,8 +23,35 @@ print('world')
 
 func TestDependencies(t *testing.T) {
 	env := testEnv()
-	ret, _ := env.AddDependencies("../requirements.txt")
-	list, _ := env.executePip([]string{"list"})
+	ret, _ := env.AddDependencies("./requirements.txt")
+	list, _ := env.executePip("list")
 	t.Logf("ret: %s", ret)
 	t.Logf("list: %s", list)
+}
+
+func (env *PyEnv) executePip(arg string) (string, error) {
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := exec.Command(env.ParentPath+"dist/python-mac.extracted/python/install/bin/pip",
+		arg)
+
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	if err := cmd.Start(); err != nil {
+		e := fmt.Errorf(stderr.String())
+		return "", e
+	}
+	if err := cmd.Wait(); err != nil {
+		e := fmt.Errorf(stderr.String())
+		return "", e
+	}
+	e := fmt.Errorf(stderr.String())
+	output := out.String()
+	return output, e
+}
+
+func testEnv() PyEnv {
+	return PyEnv{
+		ParentPath: "../",
+	}
 }
