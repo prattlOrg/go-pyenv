@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"io/fs"
-	"prattl-mac-python-install/pyenv"
+
+	"github.com/voidKandy/go-pyenv/pyenv"
 )
 
 func main() {
