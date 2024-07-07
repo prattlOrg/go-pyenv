@@ -17,7 +17,8 @@ func TestIntegration(t *testing.T) {
 print('hello')
 print('world')
 	`
-	out, e := env.ExecutePython(program)
+	args := [2]string{"-c", program}
+	out, e := env.ExecutePython(args[:])
 	fmt.Printf("%s : %v", out, e)
 }
 
