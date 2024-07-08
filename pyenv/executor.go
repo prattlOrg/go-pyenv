@@ -53,10 +53,10 @@ func (env *PyEnv) AddDependencies(requirementsPath string) (string, error) {
 	return output, e
 }
 
-func (env *PyEnv) ExecutePython(arg string) (string, error) {
+func (env *PyEnv) ExecutePython(args []string) (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
-	cmd := exec.Command(env.ParentPath+"dist/python-mac.extracted/python/install/bin/python", "-c", arg)
+	cmd := exec.Command(env.ParentPath+"dist/python-mac.extracted/python/install/bin/python", args...)
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	if err := cmd.Start(); err != nil {
