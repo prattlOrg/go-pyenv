@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 )
@@ -53,24 +52,7 @@ func (env *PyEnv) AddDependencies(requirementsPath string) (string, error) {
 	return output, e
 }
 
-func (env *PyEnv) ExecutePython(args []string) (string, error) {
-	var out bytes.Buffer
-	var stderr bytes.Buffer
+func (env *PyEnv) ExecutePython(args []string) *exec.Cmd {
 	cmd := exec.Command(env.ParentPath+"dist/python-mac.extracted/python/install/bin/python", args...)
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	if err := cmd.Start(); err != nil {
-		log.Printf("Error with command start: %s\n", stderr.String())
-		e := fmt.Errorf(stderr.String())
-		return "", e
-	}
-	if err := cmd.Wait(); err != nil {
-		log.Printf("Error with command wait: %s\n", stderr.String())
-		e := fmt.Errorf(stderr.String())
-		return "", e
-	}
-	// e := fmt.Errorf(stderr.String())
-	// log.Printf("Error: %s\n", stderr.String())
-	output := out.String()
-	return output, nil
+	return cmd
 }
