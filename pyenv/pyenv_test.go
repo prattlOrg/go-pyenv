@@ -18,8 +18,9 @@ print('hello')
 print('world')
 	`
 	args := [2]string{"-c", program}
-	out, e := env.ExecutePython(args[:])
-	fmt.Printf("%s : %v", out, e)
+	cmd := env.ExecutePython(args[:])
+	cmdT := fmt.Sprintf("%T", cmd)
+	t.Log(cmdT)
 }
 
 func TestDependencies(t *testing.T) {
