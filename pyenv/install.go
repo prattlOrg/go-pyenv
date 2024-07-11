@@ -23,6 +23,7 @@ func (env *PyEnv) MacInstall() {
 	downloadUrl := fmt.Sprintf("https://github.com/indygreg/python-build-standalone/releases/download/20240415/%s", version)
 
 	r, err := http.Get(downloadUrl)
+	fmt.Printf("downloading embedded python tar from: %s\n", downloadUrl)
 	if err != nil {
 		log.Fatalf("download failed: %v", err)
 		os.Exit(1)
@@ -40,6 +41,7 @@ func (env *PyEnv) MacInstall() {
 	}
 
 	err = os.WriteFile(downloadPath, fileData, 0o640)
+	fmt.Printf("writing python tar to: %s\n", downloadPath)
 	if err != nil {
 		log.Fatalf("writing file failed: %v", err)
 		os.Remove(downloadPath)
@@ -82,6 +84,7 @@ func extract(archivePath string, targetPath string) string {
 }
 
 func extractTarStream(r io.Reader, targetPath string) error {
+	fmt.Printf("extracting tar stream to: %s\n", targetPath)
 	tarReader := tar.NewReader(r)
 	for {
 		header, err := tarReader.Next()
@@ -99,7 +102,6 @@ func extractTarStream(r io.Reader, targetPath string) error {
 
 		p := filepath.FromSlash(header.Name)
 		p = filepath.Join(targetPath, p)
-
 		err = os.MkdirAll(filepath.Dir(p), 0755)
 		if err != nil {
 			return err
