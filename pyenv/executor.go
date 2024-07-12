@@ -19,7 +19,8 @@ func DefaultPyEnv() PyEnv {
 }
 
 func (env *PyEnv) DistExists() (*bool, error) {
-	_, err := os.Stat(env.ParentPath + "dist")
+	fp := filepath.Join(env.ParentPath, "dist")
+	_, err := os.Stat(fp)
 	t := true
 	f := false
 	if err == nil {
