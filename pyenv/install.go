@@ -13,17 +13,17 @@ import (
 	"github.com/klauspost/compress/zstd"
 )
 
-const DIST_DIR = "dist/"
+const DIST_DIR = "dist"
 
 func (env *PyEnv) MacInstall() {
-	targetDir := env.ParentPath + DIST_DIR
-	os.Mkdir(targetDir, os.ModePerm)
-
+	targetDir := filepath.Join(env.ParentPath, DIST_DIR)
+	os.MkdirAll(targetDir, os.ModePerm)
 	version := "cpython-3.12.3+20240415-aarch64-apple-darwin-pgo+lto-full.tar.zst"
-	downloadPath := targetDir + version
+	downloadPath := filepath.Join(targetDir, version)
 	downloadUrl := fmt.Sprintf("https://github.com/indygreg/python-build-standalone/releases/download/20240415/%s", version)
 
 	r, err := http.Get(downloadUrl)
+	fmt.Printf("downloading embedded python tar from: %s\n", downloadUrl)
 	if err != nil {
 		log.Fatalf("download failed: %v", err)
 		os.Exit(1)
@@ -35,8 +35,13 @@ func (env *PyEnv) MacInstall() {
 	defer r.Body.Close()
 
 	fileData, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Fatalf("reading file data for write failed: %v", err)
+		os.Exit(1)
+	}
 
 	err = os.WriteFile(downloadPath, fileData, 0o640)
+	fmt.Printf("writing python tar to: %s\n", downloadPath)
 	if err != nil {
 		log.Fatalf("writing file failed: %v", err)
 		os.Remove(downloadPath)
@@ -44,15 +49,14 @@ func (env *PyEnv) MacInstall() {
 	}
 
 	if _, err := os.Stat(downloadPath); err == nil {
-
-		extractPath := targetDir + "python-mac.extracted"
+		extractPath := filepath.Join(targetDir, "python-mac.extracted")
 		err := os.RemoveAll(extractPath)
 		if err != nil {
 			log.Panic(err)
 		}
-
 		extract(downloadPath, extractPath)
 	}
+	os.Remove(downloadPath)
 }
 
 func extract(archivePath string, targetPath string) string {
@@ -69,7 +73,6 @@ func extract(archivePath string, targetPath string) string {
 		os.Exit(1)
 	}
 	defer z.Close()
-
 	log.Printf("decompressing %s\n", archivePath)
 	err = extractTarStream(z, targetPath)
 	if err != nil {
@@ -81,8 +84,9 @@ func extract(archivePath string, targetPath string) string {
 }
 
 func extractTarStream(r io.Reader, targetPath string) error {
+	fmt.Printf("extracting tar stream to: %s\n", targetPath)
 	tarReader := tar.NewReader(r)
-	for true {
+	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
 			break
@@ -98,7 +102,6 @@ func extractTarStream(r io.Reader, targetPath string) error {
 
 		p := filepath.FromSlash(header.Name)
 		p = filepath.Join(targetPath, p)
-
 		err = os.MkdirAll(filepath.Dir(p), 0755)
 		if err != nil {
 			return err

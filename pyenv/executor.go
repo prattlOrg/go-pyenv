@@ -52,7 +52,7 @@ func (env *PyEnv) AddDependencies(requirementsPath string) (string, error) {
 	return output, e
 }
 
-func (env *PyEnv) ExecutePython(args []string) *exec.Cmd {
+func (env *PyEnv) ExecutePython(args ...string) *exec.Cmd {
 	cmd := exec.Command(env.ParentPath+"dist/python-mac.extracted/python/install/bin/python", args...)
 	return cmd
 }
