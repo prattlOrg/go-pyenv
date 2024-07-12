@@ -19,14 +19,14 @@ print('world')
 	`
 	cmd := env.ExecutePython("c", program)
 	cmdT := fmt.Sprintf("%T", cmd)
-	t.Log(cmdT)
+	fmt.Println(cmdT)
 }
 
 func TestDependencies(t *testing.T) {
 	env := testEnv()
-	ret, _ := env.AddDependencies("./requirements.txt")
+	_ = env.AddDependencies("./requirements.txt")
 	list, _ := env.executePip("list")
-	t.Logf("ret: %s", ret)
+	// t.Logf("ret: %s", ret)
 	t.Logf("list: %s", list)
 }
 

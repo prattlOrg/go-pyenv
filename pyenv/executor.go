@@ -1,11 +1,11 @@
 package pyenv
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 type PyEnv struct {
@@ -31,25 +31,14 @@ func (env *PyEnv) DistExists() (*bool, error) {
 	return nil, err
 }
 
-func (env *PyEnv) AddDependencies(requirementsPath string) (string, error) {
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd := exec.Command(env.ParentPath+"dist/python-mac.extracted/python/install/bin/pip",
-		"install", "-r", requirementsPath,
-	)
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	if err := cmd.Start(); err != nil {
-		e := fmt.Errorf(stderr.String())
-		return "", e
+func (env *PyEnv) AddDependencies(requirementsPath string) error {
+	fp := filepath.Join(env.ParentPath, "dist/python-mac.extracted/python/install/bin/pip")
+	cmd := exec.Command(fp, "install", "-r", requirementsPath)
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+		return err
 	}
-	if err := cmd.Wait(); err != nil {
-		e := fmt.Errorf(stderr.String())
-		return "", e
-	}
-	e := fmt.Errorf(stderr.String())
-	output := out.String()
-	return output, e
+	return nil
 }
 
 func (env *PyEnv) ExecutePython(args ...string) *exec.Cmd {
