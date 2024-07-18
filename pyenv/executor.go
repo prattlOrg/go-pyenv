@@ -2,7 +2,6 @@ package pyenv
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -45,8 +44,6 @@ func (env *PyEnv) AddDependencies(requirementsPath string) error {
 
 func (env *PyEnv) ExecutePython(args ...string) *exec.Cmd {
 	pythonCmd := filepath.Join(env.ParentPath, "dist/python-mac.extracted/python/install/bin/python")
-	// pythonCmd := env.ParentPath + "dist/python-mac.extracted/python/install/bin/python"
-	fmt.Println(pythonCmd)
 	cmd := exec.Command(pythonCmd, args...)
 	return cmd
 }
