@@ -15,12 +15,25 @@ import (
 
 const DIST_DIR = "dist"
 
-func (env *PyEnv) MacInstall() {
+var versions = map[string]string{
+	"windows_x86":       "cpython-3.12.5+20240814-i686-pc-windows-msvc-pgo-full.tar.zst",
+	"windows_x64":       "cpython-3.12.5+20240814-x86_64-pc-windows-msvc-pgo-full.tar.zst",
+	"apple_aarch64":     "cpython-3.12.5+20240814-aarch64-apple-darwin-pgo+lto-full.tar.zst",
+	"apple_x64":         "cpython-3.12.5+20240814-x86_64-apple-darwin-pgo+lto-full.tar.zst",
+	"linux_gnu_aarch64": "cpython-3.12.5+20240814-aarch64-unknown-linux-gnu-lto-full.tar.zst",
+	"linux_gnu_x64":     "cpython-3.12.5+20240814-x86_64-unknown-linux-gnu-pgo+lto-full.tar.zst",
+	"linux_gnu_x64_v2":  "cpython-3.12.5+20240814-x86_64_v2-unknown-linux-gnu-pgo+lto-full.tar.zst",
+	"linux_gnu_x64_v3":  "cpython-3.12.5+20240814-x86_64_v3-unknown-linux-gnu-pgo+lto-full.tar.zst",
+	"linux_gnu_x64_v4":  "cpython-3.12.5+20240814-x86_64_v4-unknown-linux-gnu-lto-full.tar.zst",
+}
+
+func (env *PyEnv) Install() {
 	targetDir := filepath.Join(env.ParentPath, DIST_DIR)
 	os.MkdirAll(targetDir, os.ModePerm)
-	version := "cpython-3.12.3+20240415-aarch64-apple-darwin-pgo+lto-full.tar.zst"
+	version := env.Distribution
+	arch := versions[version]
 	downloadPath := filepath.Join(targetDir, version)
-	downloadUrl := fmt.Sprintf("https://github.com/indygreg/python-build-standalone/releases/download/20240415/%s", version)
+	downloadUrl := fmt.Sprintf("https://github.com/indygreg/python-build-standalone/releases/download/20240814/%s", arch)
 
 	r, err := http.Get(downloadUrl)
 	fmt.Printf("downloading embedded python tar from: %s\n", downloadUrl)
@@ -49,7 +62,7 @@ func (env *PyEnv) MacInstall() {
 	}
 
 	if _, err := os.Stat(downloadPath); err == nil {
-		extractPath := filepath.Join(targetDir, "python-mac.extracted")
+		extractPath := filepath.Join(targetDir, fmt.Sprintf("python_%s", version))
 		err := os.RemoveAll(extractPath)
 		if err != nil {
 			log.Panic(err)
