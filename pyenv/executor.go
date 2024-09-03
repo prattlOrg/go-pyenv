@@ -50,7 +50,7 @@ func (env *PyEnv) AddDependencies(requirementsPath string) error {
 }
 
 func (env *PyEnv) ExecutePython(args ...string) *exec.Cmd {
-	pythonCmd := filepath.Join(env.ParentPath, fmt.Sprintf("dist/python_%s/python/install/bin/pip", env.Distribution))
+	pythonCmd := filepath.Join(env.ParentPath, fmt.Sprintf("dist/python_%s/python/install/bin/python", env.Distribution))
 	cmd := exec.Command(pythonCmd, args...)
 	return cmd
 }
