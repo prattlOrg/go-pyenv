@@ -3,7 +3,9 @@ package pyenv
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 )
 
@@ -11,7 +13,7 @@ func TestIntegration(t *testing.T) {
 	env := testEnv()
 	exists, _ := env.DistExists()
 	if !*exists {
-		env.MacInstall()
+		env.Install()
 	}
 	program := `
 print('hello')
@@ -24,7 +26,7 @@ print('world')
 
 func TestDependencies(t *testing.T) {
 	env := testEnv()
-	_ = env.AddDependencies("./requirements.txt")
+	_ = env.AddDependencies("requirements.txt")
 	list, _ := env.executePip("list")
 	// t.Logf("ret: %s", ret)
 	t.Logf("list: %s", list)
@@ -33,9 +35,8 @@ func TestDependencies(t *testing.T) {
 func (env *PyEnv) executePip(arg string) (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
-	cmd := exec.Command(env.ParentPath+"dist/python-mac.extracted/python/install/bin/pip",
-		arg)
-
+	cmdPath := filepath.Join(env.ParentPath, fmt.Sprintf("dist/python_%s/python/install/bin/pip", env.Distribution))
+	cmd := exec.Command(cmdPath, arg)
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	if err := cmd.Start(); err != nil {
@@ -52,7 +53,9 @@ func (env *PyEnv) executePip(arg string) (string, error) {
 }
 
 func testEnv() PyEnv {
+	dirname, _ := os.UserHomeDir()
 	return PyEnv{
-		ParentPath: "../",
+		ParentPath:   filepath.Join(dirname, ".pyenv_test"),
+		Distribution: "windows_x64",
 	}
 }
