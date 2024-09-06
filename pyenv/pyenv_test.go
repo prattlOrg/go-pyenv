@@ -35,7 +35,7 @@ func TestDependencies(t *testing.T) {
 func (env *PyEnv) executePip(arg string) (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
-	cmdPath := filepath.Join(env.ParentPath, fmt.Sprintf("dist/python_%s/python/install/bin/pip", env.Distribution))
+	cmdPath := filepath.Join(env.ParentPath, "dist/python/install/bin/pip")
 	cmd := exec.Command(cmdPath, arg)
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
@@ -56,6 +56,6 @@ func testEnv() PyEnv {
 	dirname, _ := os.UserHomeDir()
 	return PyEnv{
 		ParentPath:   filepath.Join(dirname, ".pyenv_test"),
-		Distribution: "windows_x64",
+		Distribution: "windows/amd64",
 	}
 }
