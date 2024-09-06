@@ -2,16 +2,15 @@ package pyenv
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 )
 
-// distributions: windows_x86, windows_x64, apple_aarch64, apple_x64, linux_gnu_aarch64, linux_gnu_x64, linux_gnu_x64_v2, linux_gnu_x64_v3, linux_gnu_x64_v4
 type PyEnv struct {
-	ParentPath   string
+	ParentPath string
+	// distributions: windows/386 windows/amd64 darwin/amd64 darwin/arm64 linux/arm64 linux/amd64
 	Distribution string
 }
 
@@ -40,7 +39,7 @@ func (env *PyEnv) DistExists() (*bool, error) {
 }
 
 func (env *PyEnv) AddDependencies(requirementsPath string) error {
-	fp := filepath.Join(env.ParentPath, fmt.Sprintf("dist/python_%s/python/install/bin/pip", env.Distribution))
+	fp := filepath.Join(env.ParentPath, "dist/python/install/bin/pip")
 	cmd := exec.Command(fp, "install", "-r", requirementsPath)
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
@@ -50,7 +49,7 @@ func (env *PyEnv) AddDependencies(requirementsPath string) error {
 }
 
 func (env *PyEnv) ExecutePython(args ...string) *exec.Cmd {
-	pythonCmd := filepath.Join(env.ParentPath, fmt.Sprintf("dist/python_%s/python/install/bin/python", env.Distribution))
+	pythonCmd := filepath.Join(env.ParentPath, "dist/python/install/bin/python")
 	cmd := exec.Command(pythonCmd, args...)
 	return cmd
 }

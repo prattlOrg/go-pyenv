@@ -16,15 +16,15 @@ import (
 const DIST_DIR = "dist"
 
 var versions = map[string]string{
-	"windows_x86":       "cpython-3.12.5+20240814-i686-pc-windows-msvc-pgo-full.tar.zst",
-	"windows_x64":       "cpython-3.12.5+20240814-x86_64-pc-windows-msvc-pgo-full.tar.zst",
-	"apple_aarch64":     "cpython-3.12.5+20240814-aarch64-apple-darwin-pgo+lto-full.tar.zst",
-	"apple_x64":         "cpython-3.12.5+20240814-x86_64-apple-darwin-pgo+lto-full.tar.zst",
-	"linux_gnu_aarch64": "cpython-3.12.5+20240814-aarch64-unknown-linux-gnu-lto-full.tar.zst",
-	"linux_gnu_x64":     "cpython-3.12.5+20240814-x86_64-unknown-linux-gnu-pgo+lto-full.tar.zst",
-	"linux_gnu_x64_v2":  "cpython-3.12.5+20240814-x86_64_v2-unknown-linux-gnu-pgo+lto-full.tar.zst",
-	"linux_gnu_x64_v3":  "cpython-3.12.5+20240814-x86_64_v3-unknown-linux-gnu-pgo+lto-full.tar.zst",
-	"linux_gnu_x64_v4":  "cpython-3.12.5+20240814-x86_64_v4-unknown-linux-gnu-lto-full.tar.zst",
+	"windows/386":   "cpython-3.12.5+20240814-i686-pc-windows-msvc-pgo-full.tar.zst",
+	"windows/amd64": "cpython-3.12.5+20240814-x86_64-pc-windows-msvc-pgo-full.tar.zst",
+	"darwin/arm64":  "cpython-3.12.5+20240814-aarch64-apple-darwin-pgo+lto-full.tar.zst",
+	"darwin/amd64":  "cpython-3.12.5+20240814-x86_64-apple-darwin-pgo+lto-full.tar.zst",
+	"linux/arm64":   "cpython-3.12.5+20240814-aarch64-unknown-linux-gnu-lto-full.tar.zst",
+	"linux/amd64":   "cpython-3.12.5+20240814-x86_64-unknown-linux-gnu-pgo+lto-full.tar.zst",
+	// "linux_gnu_x64_v2":  "cpython-3.12.5+20240814-x86_64_v2-unknown-linux-gnu-pgo+lto-full.tar.zst",
+	// "linux_gnu_x64_v3":  "cpython-3.12.5+20240814-x86_64_v3-unknown-linux-gnu-pgo+lto-full.tar.zst",
+	// "linux_gnu_x64_v4":  "cpython-3.12.5+20240814-x86_64_v4-unknown-linux-gnu-lto-full.tar.zst",
 }
 
 func (env *PyEnv) Install() {
@@ -32,43 +32,35 @@ func (env *PyEnv) Install() {
 	os.MkdirAll(targetDir, os.ModePerm)
 	version := env.Distribution
 	arch := versions[version]
-	downloadPath := filepath.Join(targetDir, version)
+	downloadPath := filepath.Join(targetDir, "python_download")
 	downloadUrl := fmt.Sprintf("https://github.com/indygreg/python-build-standalone/releases/download/20240814/%s", arch)
 
 	r, err := http.Get(downloadUrl)
 	fmt.Printf("downloading embedded python tar from: %s\n", downloadUrl)
 	if err != nil {
-		log.Fatalf("download failed: %v", err)
-		os.Exit(1)
+		log.Fatalf("download failed: %v\n", err)
 	}
 	if r.StatusCode == http.StatusNotFound {
-		log.Fatal("404 not found")
-		os.Exit(1)
+		log.Fatalln("404 not found")
 	}
 	defer r.Body.Close()
 
 	fileData, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Fatalf("reading file data for write failed: %v", err)
-		os.Exit(1)
+		log.Fatalf("reading file data for write failed: %v\n", err)
 	}
 
 	err = os.WriteFile(downloadPath, fileData, 0o640)
 	fmt.Printf("writing python tar to: %s\n", downloadPath)
 	if err != nil {
-		log.Fatalf("writing file failed: %v", err)
-		os.Remove(downloadPath)
-		os.Exit(1)
+		err := os.RemoveAll(targetDir)
+		if err != nil {
+			log.Fatalf("removing bad download failed: %v\n", err)
+		}
+		log.Fatalf("writing file failed: %v\n", err)
 	}
 
-	if _, err := os.Stat(downloadPath); err == nil {
-		extractPath := filepath.Join(targetDir, fmt.Sprintf("python_%s", version))
-		err := os.RemoveAll(extractPath)
-		if err != nil {
-			log.Panic(err)
-		}
-		extract(downloadPath, extractPath)
-	}
+	extract(downloadPath, targetDir)
 	os.Remove(downloadPath)
 }
 
@@ -76,21 +68,18 @@ func extract(archivePath string, targetPath string) string {
 	f, err := os.Open(archivePath)
 	if err != nil {
 		log.Fatalf("opening file failed: %v", err)
-		os.Exit(1)
 	}
 	defer f.Close()
 
 	z, err := zstd.NewReader(f)
 	if err != nil {
 		log.Fatalf("decompression failed: %v", err)
-		os.Exit(1)
 	}
 	defer z.Close()
 	log.Printf("decompressing %s\n", archivePath)
 	err = extractTarStream(z, targetPath)
 	if err != nil {
 		log.Fatalf("decompression failed: %v", err)
-		os.Exit(1)
 	}
 
 	return targetPath
