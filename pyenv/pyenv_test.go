@@ -21,7 +21,8 @@ print('world')
 	`
 	cmd := env.ExecutePython("c", program)
 	cmdT := fmt.Sprintf("%T", cmd)
-	fmt.Println(cmdT)
+	t.Log(cmdT)
+
 }
 
 func TestDependencies(t *testing.T) {
@@ -30,6 +31,16 @@ func TestDependencies(t *testing.T) {
 	list, _ := env.executePip("list")
 	// t.Logf("ret: %s", ret)
 	t.Logf("list: %s", list)
+}
+
+func TestRemove(t *testing.T) {
+	env := testEnv()
+	err := os.RemoveAll(env.ParentPath)
+	if err != nil {
+		t.Logf("Problem cleaning %s: %v", env.ParentPath, err)
+
+	}
+	t.Log("Successfully cleaned prattl directory")
 }
 
 func (env *PyEnv) executePip(arg string) (string, error) {
@@ -56,6 +67,6 @@ func testEnv() PyEnv {
 	dirname, _ := os.UserHomeDir()
 	return PyEnv{
 		ParentPath:   filepath.Join(dirname, ".pyenv_test"),
-		Distribution: "windows/amd64",
+		Distribution: "darwin/arm64",
 	}
 }

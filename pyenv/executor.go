@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type PyEnv struct {
@@ -39,7 +40,12 @@ func (env *PyEnv) DistExists() (*bool, error) {
 }
 
 func (env *PyEnv) AddDependencies(requirementsPath string) error {
-	fp := filepath.Join(env.ParentPath, "dist/python/install/bin/pip")
+	var fp string
+	if strings.Contains(env.Distribution, "windows") {
+		fp = filepath.Join(env.ParentPath, "dist/python/install/Scripts/pip3.exe")
+	} else {
+		fp = filepath.Join(env.ParentPath, "dist/python/install/bin/pip")
+	}
 	cmd := exec.Command(fp, "install", "-r", requirementsPath)
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
@@ -49,7 +55,12 @@ func (env *PyEnv) AddDependencies(requirementsPath string) error {
 }
 
 func (env *PyEnv) ExecutePython(args ...string) *exec.Cmd {
-	pythonCmd := filepath.Join(env.ParentPath, "dist/python/install/bin/python")
-	cmd := exec.Command(pythonCmd, args...)
+	var fp string
+	if strings.Contains(env.Distribution, "windows") {
+		fp = filepath.Join(env.ParentPath, "dist/python/install/python.exe")
+	} else {
+		fp = filepath.Join(env.ParentPath, "dist/python/install/bin/python")
+	}
+	cmd := exec.Command(fp, args...)
 	return cmd
 }
