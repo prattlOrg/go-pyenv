@@ -46,11 +46,13 @@ func (env *PyEnv) AddDependencies(requirementsPath string) error {
 	} else {
 		fp = filepath.Join(env.ParentPath, "dist/python/install/bin/pip")
 	}
+	log.Println("installing python dependencies")
 	cmd := exec.Command(fp, "install", "-r", requirementsPath)
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 		return err
 	}
+	log.Println("installing python dependencies complete")
 	return nil
 }
 
