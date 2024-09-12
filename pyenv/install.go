@@ -37,7 +37,7 @@ func (env *PyEnv) Install() {
 	downloadUrl := fmt.Sprintf("https://github.com/indygreg/python-build-standalone/releases/download/20240814/%s", arch)
 
 	r, err := http.Get(downloadUrl)
-	fmt.Printf("downloading embedded python tar from: %s\n", downloadUrl)
+	log.Printf("downloading embedded python tar from: %s\n", downloadUrl)
 	if err != nil {
 		log.Fatalf("download failed: %v\n", err)
 	}
@@ -50,9 +50,9 @@ func (env *PyEnv) Install() {
 	if err != nil {
 		log.Fatalf("reading file data for write failed: %v\n", err)
 	}
-	fmt.Println("downloading embedded python tar complete")
+	log.Println("downloading embedded python tar complete")
 
-	fmt.Printf("writing python tar to: %s\n", downloadPath)
+	log.Printf("writing python tar to: %s\n", downloadPath)
 	err = os.WriteFile(downloadPath, fileData, 0o640)
 	if err != nil {
 		err := os.RemoveAll(targetDir)
@@ -61,25 +61,25 @@ func (env *PyEnv) Install() {
 		}
 		log.Fatalf("writing file failed: %v\n", err)
 	}
-	fmt.Printf("writing python tar to: %s complete\n", downloadPath)
+	log.Println("writing python tar complete")
 
 	extract(downloadPath, targetDir)
-	os.Remove(downloadPath)
 
 	if strings.Contains(env.Distribution, "windows") {
 		fp := filepath.Join(env.ParentPath, "dist/python/install/python.exe")
-		fmt.Printf("installing pip to: %s\n", filepath.Join(env.ParentPath, "dist/python/install/Scripts"))
+		log.Printf("installing pip to: %s\n", filepath.Join(env.ParentPath, "dist/python/install/Scripts"))
 		err := installWindowsPip(fp)
 		if err != nil {
 			log.Fatalf("problem installing pip: %v\n", err)
 		}
-		fmt.Printf("installing pip to: %s complete\n", filepath.Join(env.ParentPath, "dist/python/install/Scripts"))
+		log.Println("installing pip complete")
 	}
-	fmt.Println("prattl prepare complete")
+
+	os.Remove(downloadPath)
 }
 
 func extract(archivePath string, targetPath string) string {
-	fmt.Printf("extracting python tar to: %s\n", filepath.Join(targetPath, "python"))
+	log.Printf("extracting python tar to: %s\n", filepath.Join(targetPath, "python"))
 	f, err := os.Open(archivePath)
 	if err != nil {
 		log.Fatalf("opening file failed: %v", err)
@@ -91,18 +91,18 @@ func extract(archivePath string, targetPath string) string {
 		log.Fatalf("decompression failed: %v", err)
 	}
 	defer z.Close()
-	log.Printf("decompressing %s\n", archivePath)
+	// log.Printf("decompressing %s\n", archivePath)
 	err = extractTarStream(z, targetPath)
 	if err != nil {
 		log.Fatalf("decompression failed: %v", err)
 	}
-	fmt.Println("extracting tar complete")
+	log.Println("extracting tar complete")
 
 	return targetPath
 }
 
 func extractTarStream(r io.Reader, targetPath string) error {
-	fmt.Printf("extracting tar stream to: %s\n", targetPath)
+	// log.Printf("extracting tar stream to: %s\n", targetPath)
 	tarReader := tar.NewReader(r)
 	for {
 		header, err := tarReader.Next()
