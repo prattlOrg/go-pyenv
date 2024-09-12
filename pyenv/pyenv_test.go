@@ -38,7 +38,6 @@ func TestRemove(t *testing.T) {
 	err := os.RemoveAll(env.ParentPath)
 	if err != nil {
 		t.Logf("Problem cleaning %s: %v", env.ParentPath, err)
-
 	}
 	t.Log("Successfully cleaned prattl directory")
 }

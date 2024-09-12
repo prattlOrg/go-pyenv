@@ -50,9 +50,10 @@ func (env *PyEnv) Install() {
 	if err != nil {
 		log.Fatalf("reading file data for write failed: %v\n", err)
 	}
+	fmt.Println("downloading embedded python tar complete")
 
-	err = os.WriteFile(downloadPath, fileData, 0o640)
 	fmt.Printf("writing python tar to: %s\n", downloadPath)
+	err = os.WriteFile(downloadPath, fileData, 0o640)
 	if err != nil {
 		err := os.RemoveAll(targetDir)
 		if err != nil {
@@ -60,20 +61,25 @@ func (env *PyEnv) Install() {
 		}
 		log.Fatalf("writing file failed: %v\n", err)
 	}
+	fmt.Printf("writing python tar to: %s complete\n", downloadPath)
 
 	extract(downloadPath, targetDir)
 	os.Remove(downloadPath)
 
 	if strings.Contains(env.Distribution, "windows") {
 		fp := filepath.Join(env.ParentPath, "dist/python/install/python.exe")
+		fmt.Printf("installing pip to: %s\n", filepath.Join(env.ParentPath, "dist/python/install/Scripts"))
 		err := installWindowsPip(fp)
 		if err != nil {
 			log.Fatalf("problem installing pip: %v\n", err)
 		}
+		fmt.Printf("installing pip to: %s complete\n", filepath.Join(env.ParentPath, "dist/python/install/Scripts"))
 	}
+	fmt.Println("prattl prepare complete")
 }
 
 func extract(archivePath string, targetPath string) string {
+	fmt.Printf("extracting python tar to: %s\n", filepath.Join(targetPath, "python"))
 	f, err := os.Open(archivePath)
 	if err != nil {
 		log.Fatalf("opening file failed: %v", err)
@@ -90,6 +96,7 @@ func extract(archivePath string, targetPath string) string {
 	if err != nil {
 		log.Fatalf("decompression failed: %v", err)
 	}
+	fmt.Println("extracting tar complete")
 
 	return targetPath
 }
