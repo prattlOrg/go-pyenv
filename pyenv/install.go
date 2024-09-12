@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -62,6 +63,14 @@ func (env *PyEnv) Install() {
 
 	extract(downloadPath, targetDir)
 	os.Remove(downloadPath)
+
+	if strings.Contains(env.Distribution, "windows") {
+		fp := filepath.Join(env.ParentPath, "dist/python/install/python.exe")
+		err := installWindowsPip(fp)
+		if err != nil {
+			log.Fatalf("problem installing pip: %v\n", err)
+		}
+	}
 }
 
 func extract(archivePath string, targetPath string) string {
@@ -150,4 +159,13 @@ func validRelPath(p string) bool {
 		return false
 	}
 	return true
+}
+
+func installWindowsPip(fp string) error {
+	cmd := exec.Command(fp, "-m", "ensurepip", "--upgrade")
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+		return err
+	}
+	return nil
 }
