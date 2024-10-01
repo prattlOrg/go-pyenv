@@ -169,6 +169,7 @@ func validRelPath(p string) bool {
 }
 
 func installWindowsPip(fp string) error {
+	// https://pip.pypa.io/en/stable/installation/
 	cmd := exec.Command(fp, "-m", "ensurepip", "--upgrade")
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)

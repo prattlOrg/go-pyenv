@@ -1,4 +1,4 @@
-module github.com/voidKandy/go-pyenv
+module github.com/prattlOrg/go-pyenv
 
 go 1.21.3
 
