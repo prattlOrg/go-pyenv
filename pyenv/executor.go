@@ -2,6 +2,7 @@ package pyenv
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -13,17 +14,56 @@ type PyEnv struct {
 	ParentPath string
 	// distributions: windows/386 windows/amd64 darwin/amd64 darwin/arm64 linux/arm64 linux/amd64
 	Distribution string
+	Compressed   bool
 }
 
-func DefaultPyEnv() PyEnv {
-	dirname, err := os.UserHomeDir()
+func NewPyEnv(path string) (*PyEnv, error) {
+	homedir, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return PyEnv{
-		ParentPath: dirname,
+	if path == homedir {
+		err := fmt.Errorf("path cannot be homedir\npath given: %s\nhomedir: %s\n", path, homedir)
+		return nil, err
 	}
+
+	env := PyEnv{
+		ParentPath: path,
+	}
+
+	return &env, nil
 }
+
+// func DefaultPyEnv() PyEnv {
+// 	dirname, err := os.UserHomeDir()
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	return PyEnv{
+// 		ParentPath: dirname,
+// 	}
+// }
+
+// func (env *PyEnv) CompressDist() error {
+// 	if env.Compressed {
+// 		log.Println("dist is already compressed")
+// 		return nil
+// 	}
+//
+// 	source := filepath.Join(env.ParentPath, "dist")
+// 	compressDir(source)
+//
+// 	return nil
+// }
+//
+// func (env *PyEnv) DecompressDist() error {
+// 	if !env.Compressed {
+// 		log.Println("dist is already decompressed")
+// 		return nil
+// 	}
+// 	fp := filepath.Join(env.ParentPath, "dist")
+// 	return nil
+// }
 
 func (env *PyEnv) DistExists() (*bool, error) {
 	fp := filepath.Join(env.ParentPath, "dist")

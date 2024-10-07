@@ -3,11 +3,77 @@ package pyenv
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 )
+
+func compareDirectories(dir1, dir2 string) (bool, error) {
+	files1, err := os.ReadDir(dir1)
+	if err != nil {
+		return false, err
+	}
+	files2, err := os.ReadDir(dir2)
+	if err != nil {
+		return false, err
+	}
+
+	if len(files1) != len(files2) {
+		return false, nil
+	}
+
+	fileMap := make(map[string]os.FileInfo)
+	for _, file := range files2 {
+		info, err := file.Info()
+		if err != nil {
+			return false, err
+		}
+		fileMap[file.Name()] = info
+	}
+
+	for _, file1 := range files1 {
+		file2info, exists := fileMap[file1.Name()]
+		file1info, err := file1.Info()
+		if err != nil {
+			return false, err
+		}
+		if !exists || file1info.Size() != file2info.Size() {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+func TestCompression(t *testing.T) {
+	dir := "../comp-test"
+	zipTarget := "../test.zip"
+	os.ReadDir(dir)
+
+	err := compressDir(dir, zipTarget)
+	if err != nil {
+		log.Fatalf("Error unzipping: %v\n", err)
+	}
+	unzipTarget := "../target"
+	err = unzipSource(zipTarget, unzipTarget)
+	if err != nil {
+		log.Fatalf("Error unzipping: %v\n", err)
+	}
+
+	same, err := compareDirectories(dir, unzipTarget)
+	if err != nil {
+		log.Fatalf("Error unzipping: %v\n", err)
+	}
+
+	if !same {
+		log.Fatalf("Compression/Decompression didn't, fail, but it didn't output the expected directory contents")
+	}
+
+	os.RemoveAll(unzipTarget)
+	os.RemoveAll(zipTarget)
+}
 
 func TestIntegration(t *testing.T) {
 	env := testEnv()
@@ -22,7 +88,6 @@ print('world')
 	cmd := env.ExecutePython("c", program)
 	cmdT := fmt.Sprintf("%T", cmd)
 	t.Log(cmdT)
-
 }
 
 func TestDependencies(t *testing.T) {
@@ -64,8 +129,7 @@ func (env *PyEnv) executePip(arg string) (string, error) {
 
 func testEnv() PyEnv {
 	dirname, _ := os.UserHomeDir()
-	return PyEnv{
-		ParentPath:   filepath.Join(dirname, ".pyenv_test"),
-		Distribution: "darwin/arm64",
-	}
+	env, _ := NewPyEnv(filepath.Join(dirname, ".pyenv_test"))
+	env.Distribution = "darwin/arm64"
+	return *env
 }
