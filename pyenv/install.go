@@ -75,6 +75,7 @@ func (env *PyEnv) Install() {
 		log.Println("installing pip complete")
 	}
 
+	env.Compressed = false
 	os.Remove(downloadPath)
 }
 

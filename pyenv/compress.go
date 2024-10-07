@@ -14,6 +14,7 @@ const ZIP_FILE_EXT = ".zip"
 
 // Stolen from https://gosamples.dev/zip-file/
 func compressDir(source, target string) error {
+	log.Printf("Compressing %v into %v\n", source, target)
 	f, err := os.Create(target)
 	if err != nil {
 		return err
@@ -72,7 +73,7 @@ func unzipSource(source, destination string) error {
 	defer reader.Close()
 
 	destination, err = filepath.Abs(destination)
-	log.Printf("unzipping %v into %v\n", source, destination)
+	// log.Printf("unzipping %v into %v\n", source, destination)
 	if err != nil {
 		return err
 	}
@@ -82,14 +83,10 @@ func unzipSource(source, destination string) error {
 		log.Fatalf("Expected source file to end in .zip, got = %v\n", source)
 	}
 
-	// filepath.Join doesn't add the path separator here for some reason. Thats why im using +
 	sourceDir = filepath.Base(sourceDir) + string(os.PathSeparator)
 
-	// destination = strings.TrimSuffix(destination, sourceDir)
-	// log.Printf("Cut sourceDir from destination: %v\n", destination)
-
 	for _, f := range reader.File {
-		log.Printf("unzipping file: %v\nwith source dir: %v\n", f.Name, sourceDir)
+		// log.Printf("unzipping file: %v\nwith source dir: %v\n", f.Name, sourceDir)
 		err := unzipFile(f, destination, sourceDir)
 		if err != nil {
 			return err
@@ -100,8 +97,6 @@ func unzipSource(source, destination string) error {
 }
 
 func unzipFile(f *zip.File, destination, sourceDir string) error {
-	// sourcePath := filepath.Join(destination, sourceDir)
-
 	if f.Name == sourceDir {
 		return nil
 	}
@@ -110,16 +105,7 @@ func unzipFile(f *zip.File, destination, sourceDir string) error {
 	filePath := filepath.Join(destination, fileName)
 	os.Mkdir(destination, 0o777)
 
-	// lastIdx := strings.LastIndex(filePath, sourcePath)
-	// if lastIdx != -1 {
-	// 	newFilePath := filepath.Join(filePath[:lastIdx], filePath[lastIdx+len(filePath):])
-	// 	log.Printf("changing path from %v to %v\n", filePath, newFilePath)
-	// 	filePath = newFilePath
-	// } else {
-	// 	log.Printf("%v does not contain %v", filePath, sourcePath)
-	// }
-
-	log.Printf("Unzipping file: %v\n", filePath)
+	// log.Printf("Unzipping file: %v\n", filePath)
 	if !strings.HasPrefix(filePath, filepath.Clean(destination)+string(os.PathSeparator)) {
 		return fmt.Errorf("invalid file path: %s", filePath)
 	}

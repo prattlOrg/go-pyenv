@@ -85,9 +85,41 @@ func TestIntegration(t *testing.T) {
 print('hello')
 print('world')
 	`
-	cmd := env.ExecutePython("c", program)
+	cmd, err := env.ExecutePython("c", program)
+	if err != nil {
+		t.Errorf("error executing python: %v\n", err)
+	}
+
 	cmdT := fmt.Sprintf("%T", cmd)
 	t.Log(cmdT)
+
+	err = env.CompressDist()
+	if err != nil {
+		t.Errorf("error compressing dist: %v\n", err)
+	}
+
+	if _, err = env.ExecutePython("c", program); err == nil {
+		t.Error("Execute python should error when trying to run when dist is compressed")
+	}
+	t.Log("compressed & Execute python returned as expected")
+
+	if err := env.DecompressDist(); err != nil {
+		t.Errorf("error decompressing dist: %v\n", err)
+	}
+
+	t.Log("decompressed")
+
+	cmd, err = env.ExecutePython("c", program)
+	if err != nil {
+		t.Errorf("error executing python: %v\n", err)
+	}
+
+	cmdT2 := fmt.Sprintf("%T", cmd)
+	if cmdT != cmdT2 {
+		t.Logf("expected outputs to be the same. Instead got cmdT: %v\ncmdT2: %v\n", cmdT, cmdT2)
+	}
+
+	t.Log("Test passed")
 }
 
 func TestDependencies(t *testing.T) {

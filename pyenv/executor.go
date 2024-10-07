@@ -34,36 +34,48 @@ func NewPyEnv(path string) (*PyEnv, error) {
 	return &env, nil
 }
 
-// func DefaultPyEnv() PyEnv {
-// 	dirname, err := os.UserHomeDir()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	return PyEnv{
-// 		ParentPath: dirname,
-// 	}
-// }
+func (env *PyEnv) distPath() string {
+	return filepath.Join(env.ParentPath, "dist")
+}
 
-// func (env *PyEnv) CompressDist() error {
-// 	if env.Compressed {
-// 		log.Println("dist is already compressed")
-// 		return nil
-// 	}
-//
-// 	source := filepath.Join(env.ParentPath, "dist")
-// 	compressDir(source)
-//
-// 	return nil
-// }
-//
-// func (env *PyEnv) DecompressDist() error {
-// 	if !env.Compressed {
-// 		log.Println("dist is already decompressed")
-// 		return nil
-// 	}
-// 	fp := filepath.Join(env.ParentPath, "dist")
-// 	return nil
-// }
+func (env *PyEnv) compressionTarget() string {
+	return env.distPath() + ZIP_FILE_EXT
+}
+
+func (env *PyEnv) CompressDist() error {
+	if env.Compressed {
+		return fmt.Errorf("Dist is already compressed")
+	}
+
+	if err := compressDir(env.distPath(), env.compressionTarget()); err != nil {
+		return err
+	}
+	env.Compressed = true
+
+	if err := os.RemoveAll(env.distPath()); err != nil {
+		return err
+	}
+	log.Printf("removed %v\n", env.distPath())
+	return nil
+}
+
+func (env *PyEnv) DecompressDist() error {
+	if !env.Compressed {
+		log.Println("dist is already decompressed")
+		return nil
+	}
+
+	env.Compressed = false
+
+	if err := unzipSource(env.compressionTarget(), env.distPath()); err != nil {
+		return err
+	}
+	if err := os.RemoveAll(env.compressionTarget()); err != nil {
+		return err
+	}
+	log.Printf("removed %v\n", env.compressionTarget())
+	return nil
+}
 
 func (env *PyEnv) DistExists() (*bool, error) {
 	fp := filepath.Join(env.ParentPath, "dist")
@@ -80,6 +92,11 @@ func (env *PyEnv) DistExists() (*bool, error) {
 }
 
 func (env *PyEnv) AddDependencies(requirementsPath string) error {
+	if env.Compressed {
+		if err := env.DecompressDist(); err != nil {
+			return err
+		}
+	}
 	var fp string
 	if strings.Contains(env.Distribution, "windows") {
 		fp = filepath.Join(env.ParentPath, "dist/python/install/Scripts/pip3.exe")
@@ -96,7 +113,11 @@ func (env *PyEnv) AddDependencies(requirementsPath string) error {
 	return nil
 }
 
-func (env *PyEnv) ExecutePython(args ...string) *exec.Cmd {
+// Executes given python arguments, only will error if the env is compressed
+func (env *PyEnv) ExecutePython(args ...string) (*exec.Cmd, error) {
+	if env.Compressed {
+		return nil, fmt.Errorf("Cannot execute python with a compressed dist")
+	}
 	var fp string
 	if strings.Contains(env.Distribution, "windows") {
 		fp = filepath.Join(env.ParentPath, "dist/python/install/python.exe")
@@ -104,5 +125,5 @@ func (env *PyEnv) ExecutePython(args ...string) *exec.Cmd {
 		fp = filepath.Join(env.ParentPath, "dist/python/install/bin/python")
 	}
 	cmd := exec.Command(fp, args...)
-	return cmd
+	return cmd, nil
 }
