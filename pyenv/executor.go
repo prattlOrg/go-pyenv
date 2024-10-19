@@ -106,8 +106,7 @@ func (env *PyEnv) AddDependencies(requirementsPath string) error {
 	log.Println("installing python dependencies")
 	cmd := exec.Command(fp, "install", "-r", requirementsPath)
 	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
-		return err
+		return fmt.Errorf("error installing python dependencies: %v\n", err)
 	}
 	log.Println("installing python dependencies complete")
 	return nil
