@@ -28,9 +28,12 @@ var versions = map[string]string{
 	// "linux_gnu_x64_v4":  "cpython-3.12.5+20240814-x86_64_v4-unknown-linux-gnu-lto-full.tar.zst",
 }
 
-func (env *PyEnv) Install() {
+func (env *PyEnv) Install() error {
 	targetDir := filepath.Join(env.ParentPath, DIST_DIR)
-	os.MkdirAll(targetDir, os.ModePerm)
+	err := os.MkdirAll(targetDir, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("error creating directory %v: %v\n", targetDir, err)
+	}
 	version := env.Distribution
 	arch := versions[version]
 	downloadPath := filepath.Join(targetDir, "python_download")
@@ -39,16 +42,16 @@ func (env *PyEnv) Install() {
 	r, err := http.Get(downloadUrl)
 	log.Printf("downloading embedded python tar from: %s\n", downloadUrl)
 	if err != nil {
-		log.Fatalf("download failed: %v\n", err)
+		return fmt.Errorf("download failed: %v\n", err)
 	}
 	if r.StatusCode == http.StatusNotFound {
-		log.Fatalln("404 not found")
+		return fmt.Errorf("404 not found")
 	}
 	defer r.Body.Close()
 
 	fileData, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Fatalf("reading file data for write failed: %v\n", err)
+		return fmt.Errorf("reading file data for write failed: %v\n", err)
 	}
 	log.Println("downloading embedded python tar complete")
 
@@ -57,53 +60,60 @@ func (env *PyEnv) Install() {
 	if err != nil {
 		err := os.RemoveAll(targetDir)
 		if err != nil {
-			log.Fatalf("removing bad download failed: %v\n", err)
+			return fmt.Errorf("removing bad download failed: %v\n", err)
 		}
-		log.Fatalf("writing file failed: %v\n", err)
+		return fmt.Errorf("writing file failed: %v\n", err)
 	}
 	log.Println("writing python tar complete")
 
-	extract(downloadPath, targetDir)
+	err = extract(downloadPath, targetDir)
+	if err != nil {
+		return err
+	}
 
 	if strings.Contains(env.Distribution, "windows") {
 		fp := filepath.Join(env.ParentPath, "dist/python/install/python.exe")
 		log.Printf("installing pip to: %s\n", filepath.Join(env.ParentPath, "dist/python/install/Scripts"))
 		err := installWindowsPip(fp)
 		if err != nil {
-			log.Fatalf("problem installing pip: %v\n", err)
+			return fmt.Errorf("problem installing pip: %v\n", err)
 		}
 		log.Println("installing pip complete")
 	}
 
 	env.Compressed = false
-	os.Remove(downloadPath)
+
+	err = os.Remove(downloadPath)
+	if err != nil {
+		return fmt.Errorf("error removing download: %v\n", err)
+	}
+	return nil
 }
 
-func extract(archivePath string, targetPath string) string {
+func extract(archivePath string, targetPath string) error {
 	log.Printf("extracting python tar to: %s\n", filepath.Join(targetPath, "python"))
 	f, err := os.Open(archivePath)
 	if err != nil {
-		log.Fatalf("opening file failed: %v", err)
+		return fmt.Errorf("error opening downloaded tar: %v\n", err)
 	}
 	defer f.Close()
 
 	z, err := zstd.NewReader(f)
 	if err != nil {
-		log.Fatalf("decompression failed: %v", err)
+		return fmt.Errorf("error decoding downloaded tar: %v", err)
 	}
 	defer z.Close()
-	// log.Printf("decompressing %s\n", archivePath)
+
 	err = extractTarStream(z, targetPath)
 	if err != nil {
-		log.Fatalf("decompression failed: %v", err)
+		return fmt.Errorf("error extracting downloaded tar: %v\n", err)
 	}
 	log.Println("extracting tar complete")
 
-	return targetPath
+	return nil
 }
 
 func extractTarStream(r io.Reader, targetPath string) error {
-	// log.Printf("extracting tar stream to: %s\n", targetPath)
 	tarReader := tar.NewReader(r)
 	for {
 		header, err := tarReader.Next()
@@ -173,7 +183,6 @@ func installWindowsPip(fp string) error {
 	// https://pip.pypa.io/en/stable/installation/
 	cmd := exec.Command(fp, "-m", "ensurepip", "--upgrade")
 	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
 		return err
 	}
 	return nil
