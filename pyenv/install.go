@@ -32,7 +32,7 @@ func (env *PyEnv) Install() error {
 	targetDir := filepath.Join(env.ParentPath, DIST_DIR)
 	err := os.MkdirAll(targetDir, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("error creating directory %v: %v\n", targetDir, err)
+		return fmt.Errorf("error creating directory %v: %v", targetDir, err)
 	}
 	version := env.Distribution
 	arch := versions[version]
@@ -42,7 +42,7 @@ func (env *PyEnv) Install() error {
 	r, err := http.Get(downloadUrl)
 	log.Printf("downloading embedded python tar from: %s\n", downloadUrl)
 	if err != nil {
-		return fmt.Errorf("download failed: %v\n", err)
+		return fmt.Errorf("download failed: %v", err)
 	}
 	if r.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("404 not found")
@@ -51,7 +51,7 @@ func (env *PyEnv) Install() error {
 
 	fileData, err := io.ReadAll(r.Body)
 	if err != nil {
-		return fmt.Errorf("reading file data for write failed: %v\n", err)
+		return fmt.Errorf("reading file data for write failed: %v", err)
 	}
 	log.Println("downloading embedded python tar complete")
 
@@ -60,9 +60,9 @@ func (env *PyEnv) Install() error {
 	if err != nil {
 		err := os.RemoveAll(targetDir)
 		if err != nil {
-			return fmt.Errorf("removing bad download failed: %v\n", err)
+			return fmt.Errorf("removing bad download failed: %v", err)
 		}
-		return fmt.Errorf("writing file failed: %v\n", err)
+		return fmt.Errorf("writing file failed: %v", err)
 	}
 	log.Println("writing python tar complete")
 
@@ -76,7 +76,7 @@ func (env *PyEnv) Install() error {
 		log.Printf("installing pip to: %s\n", filepath.Join(env.ParentPath, "dist/python/install/Scripts"))
 		err := installWindowsPip(fp)
 		if err != nil {
-			return fmt.Errorf("problem installing pip: %v\n", err)
+			return fmt.Errorf("problem installing pip: %v", err)
 		}
 		log.Println("installing pip complete")
 	}
@@ -85,7 +85,7 @@ func (env *PyEnv) Install() error {
 
 	err = os.Remove(downloadPath)
 	if err != nil {
-		return fmt.Errorf("error removing download: %v\n", err)
+		return fmt.Errorf("error removing download: %v", err)
 	}
 	return nil
 }
@@ -94,7 +94,7 @@ func extract(archivePath string, targetPath string) error {
 	log.Printf("extracting python tar to: %s\n", filepath.Join(targetPath, "python"))
 	f, err := os.Open(archivePath)
 	if err != nil {
-		return fmt.Errorf("error opening downloaded tar: %v\n", err)
+		return fmt.Errorf("error opening downloaded tar: %v", err)
 	}
 	defer f.Close()
 
@@ -106,7 +106,7 @@ func extract(archivePath string, targetPath string) error {
 
 	err = extractTarStream(z, targetPath)
 	if err != nil {
-		return fmt.Errorf("error extracting downloaded tar: %v\n", err)
+		return fmt.Errorf("error extracting downloaded tar: %v", err)
 	}
 	log.Println("extracting tar complete")
 

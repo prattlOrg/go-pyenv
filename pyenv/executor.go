@@ -20,10 +20,11 @@ type PyEnv struct {
 func NewPyEnv(path string) (*PyEnv, error) {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting $HOME directory: %v", err)
 	}
+
 	if path == homedir {
-		err := fmt.Errorf("path cannot be homedir\npath given: %s\nhomedir: %s\n", path, homedir)
+		err := fmt.Errorf("path cannot be homedir\npath given: %s\nhomedir: %s", path, homedir)
 		return nil, err
 	}
 
@@ -44,16 +45,16 @@ func (env *PyEnv) compressionTarget() string {
 
 func (env *PyEnv) CompressDist() error {
 	if env.Compressed {
-		return fmt.Errorf("Dist is already compressed")
+		return fmt.Errorf("dist is already compressed")
 	}
 
 	if err := compressDir(env.distPath(), env.compressionTarget()); err != nil {
-		return err
+		return fmt.Errorf("error compressing python environment: %v", err)
 	}
 	env.Compressed = true
 
 	if err := os.RemoveAll(env.distPath()); err != nil {
-		return err
+		return fmt.Errorf("error removing old uncompressed evironment: %v", err)
 	}
 	log.Printf("removed %v\n", env.distPath())
 	return nil
@@ -68,10 +69,10 @@ func (env *PyEnv) DecompressDist() error {
 	env.Compressed = false
 
 	if err := unzipSource(env.compressionTarget(), env.distPath()); err != nil {
-		return err
+		return fmt.Errorf("error unzipping compressed evironment: %v", err)
 	}
 	if err := os.RemoveAll(env.compressionTarget()); err != nil {
-		return err
+		return fmt.Errorf("error removing old compressed evironment: %v", err)
 	}
 	log.Printf("removed %v\n", env.compressionTarget())
 	return nil
@@ -106,7 +107,7 @@ func (env *PyEnv) AddDependencies(requirementsPath string) error {
 	log.Println("installing python dependencies")
 	cmd := exec.Command(fp, "install", "-r", requirementsPath)
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error installing python dependencies: %v\n", err)
+		return fmt.Errorf("error installing python dependencies: %v", err)
 	}
 	log.Println("installing python dependencies complete")
 	return nil
@@ -115,7 +116,7 @@ func (env *PyEnv) AddDependencies(requirementsPath string) error {
 // Executes given python arguments, only will error if the env is compressed
 func (env *PyEnv) ExecutePython(args ...string) (*exec.Cmd, error) {
 	if env.Compressed {
-		return nil, fmt.Errorf("Cannot execute python with a compressed dist")
+		return nil, fmt.Errorf("cannot execute python with a compressed dist")
 	}
 	var fp string
 	if strings.Contains(env.Distribution, "windows") {
